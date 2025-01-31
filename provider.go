@@ -119,7 +119,7 @@ func (p *OllamaProvider) GenerateWithTools(ctx context.Context, messages []messa
 			}
 
 			// Call the tool
-			result, err := toolToCall.Function(ctx, []byte(toolCall.Function.Arguments))
+			result, err := toolToCall.WrappedFunction(ctx, []byte(toolCall.Function.Arguments))
 			if err != nil {
 				return nil, fmt.Errorf("tool execution failed: %w", err)
 			}
