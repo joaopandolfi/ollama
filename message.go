@@ -1,23 +1,14 @@
 package ollama
 
-import "github.com/agent-api/core/message"
-
-type OllamaMessageRole string
-
-const (
-	OllamaUserMessageRole OllamaMessageRole = "user"
-	OllamaAIMessageRole   OllamaMessageRole = "ai"
+import (
+	"github.com/agent-api/core/message"
+	"github.com/agent-api/ollama-provider/client"
 )
 
-type ollamaMessage struct {
-	Role    OllamaMessageRole `json:"role"`
-	Content string            `json:"content"`
-}
-
-func convertMessageToOllamaMessage(m message.Message) *ollamaMessage {
+func convertMessageToOllamaMessage(m message.Message) *client.Message {
 	if m.Role == message.UserMessageRole {
-		return &ollamaMessage{
-			Role:    OllamaUserMessageRole,
+		return &client.Message{
+			Role:    client.RoleUser,
 			Content: m.Content,
 		}
 	}
@@ -25,8 +16,8 @@ func convertMessageToOllamaMessage(m message.Message) *ollamaMessage {
 	return nil
 }
 
-func convertOllamaMessageToMessage(m ollamaMessage) message.Message {
-	if m.Role == OllamaUserMessageRole {
+func convertOllamaMessageToMessage(m client.Message) message.Message {
+	if m.Role == client.RoleUser {
 		return message.Message{
 			Role:    message.UserMessageRole,
 			Content: m.Content,
@@ -36,9 +27,9 @@ func convertOllamaMessageToMessage(m ollamaMessage) message.Message {
 	return message.Message{}
 }
 
-func convertManyMessagesToOllamaMessages(messages []message.Message) []*ollamaMessage {
+func convertManyMessagesToOllamaMessages(messages []message.Message) []*client.Message {
 	// Convert agent messages to Ollama format
-	ollamaMessages := make([]*ollamaMessage, len(messages))
+	ollamaMessages := make([]*client.Message, len(messages))
 
 	for i, m := range messages {
 		ollamaMessages[i] = convertMessageToOllamaMessage(m)

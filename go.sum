@@ -1,2 +1,9 @@
+github.com/agent-api/core v0.0.0-20250109223542-c818c8759eac h1:4ahjQf7ITehkVfW3ecaunXhyxOMlWNjKcMMefo7Vekg=
+github.com/agent-api/core v0.0.0-20250109223542-c818c8759eac/go.mod h1:c4G0vj26SuNToYzga7UoyA9/DAQwuzHeDt7ULGQsFd4=
+github.com/agent-api/gsv v0.0.0-20250110053128-359afccd0b05 h1:fQQF3ERiPiL+2ZIemn1bgoKh5YdanmJmvwsmnpuWq1M=
+github.com/agent-api/gsv v0.0.0-20250110053128-359afccd0b05/go.mod h1:WPM1uTcJSntLqcnmkq+ArTcTq0VwLymRsarjDfaJZ8Y=
+github.com/go-logr/logr v1.2.2/go.mod h1:jdQByPbusPIv2/zmleS9BjJVeZ6kBagPoEUsqbVz/1A=
 github.com/go-logr/logr v1.4.2 h1:6pFjapn8bFcIbiKo3XT4j/BhANplGihG6tvd+8rYgrY=
 github.com/go-logr/logr v1.4.2/go.mod h1:9T104GzyrTigFIr8wt5mBrctHMim0Nb2HLGrmQ40KvY=
+github.com/go-logr/stdr v1.2.2 h1:hSWxHoqTgW2S2qGc0LTAI563KZ5YKYRhT3MFKZMbjag=
+github.com/go-logr/stdr v1.2.2/go.mod h1:mMo/vtBO5dYbehREoey6XUKy/eSumjCCveDpRre4VKE=

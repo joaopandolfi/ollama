@@ -1,59 +1,48 @@
 package ollama
 
 import (
-	"bytes"
 	"context"
-	"encoding/json"
 	"fmt"
-	"io"
-	"net/http"
-	"strconv"
-	"strings"
 
 	"github.com/agent-api/core"
 	"github.com/agent-api/core/message"
 	"github.com/agent-api/core/tool"
+	"github.com/agent-api/ollama-provider/client"
 	"github.com/go-logr/logr"
 )
 
 // OllamaProvider implements the LLMProvider interface for Ollama
 type OllamaProvider struct {
-	host   string
-	port   int
-	model  string
-	client *http.Client
+	host  string
+	port  int
+	model string
+
+	// client is the internal Ollama HTTP client
+	client *client.OllamaClient
 
 	logger logr.Logger
 }
 
-type ollamaRequest struct {
-	Model    string           `json:"model"`
-	Messages []*ollamaMessage `json:"messages"`
-	Stream   bool             `json:"stream"`
-}
-
-type ollamaResponse struct {
-	Message ollamaMessage `json:"message"`
-	Error   string        `json:"error,omitempty"`
-}
-
 // NewOllamaProvider creates a new Ollama provider
+//
+// TODO:
+// - need to handle base URL better (with trailing slashes, etc.)
+// - need to construct actual URL using baseURL, port, etc.
 func NewOllamaProvider(logger logr.Logger, baseURL string, port int, model string) *OllamaProvider {
-	// todo - fix this
-	//if !strings.HasSuffix(baseURL, "/") {
-	//baseURL += "/"
-	//}
+	client := client.NewClient(
+		client.WithBaseURL("http://localhost:11434/api"),
+	)
 
 	return &OllamaProvider{
 		host:   baseURL,
 		port:   port,
 		model:  model,
-		client: &http.Client{},
+		client: client,
 		logger: logger,
 	}
 }
 
-func GetCapabilities(ctx context.Context) (*core.ProviderCapabilities, error) {
+func (p *OllamaProvider) GetCapabilities(ctx context.Context) (*core.ProviderCapabilities, error) {
 	println("NOT IMPLEMENTED YET")
 	return nil, nil
 }
@@ -62,47 +51,103 @@ func GetCapabilities(ctx context.Context) (*core.ProviderCapabilities, error) {
 func (p *OllamaProvider) GenerateResponse(ctx context.Context, messages []message.Message) (*message.Message, error) {
 	ollamaMessages := convertManyMessagesToOllamaMessages(messages)
 
-	reqBody := ollamaRequest{
-		Model:    p.model,
+	resp, err := p.client.Chat(ctx, &client.ChatRequest{
+		Model:    "llama3.2",
 		Messages: ollamaMessages,
-		Stream:   false,
-	}
-
-	jsonBody, err := json.Marshal(reqBody)
+	})
 	if err != nil {
-		return nil, fmt.Errorf("error marshaling request: %w", err)
-	}
-
-	response, err := p.apiChat(ctx, jsonBody)
-	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error calling client chat method: %w", err)
 	}
 
 	return &message.Message{
 		Role:    "ai",
-		Content: response.Message.Content,
+		Content: resp.Message.Content,
 	}, nil
 }
 
 // GenerateWithTools implements the LLMProvider interface for tool-using responses
+//
+// TODO:
+// - handle automatically generating a system message descriptor
 func (p *OllamaProvider) GenerateWithTools(ctx context.Context, messages []message.Message, tools []tool.Tool) (*message.Message, error) {
-	// For Ollama, we'll embed tool information in the prompt since it doesn't natively support tools
-	// Create a description of available tools
-	var toolsDesc strings.Builder
-	toolsDesc.WriteString("\nAvailable tools:\n")
-	for _, tool := range tools {
-		toolsDesc.WriteString(fmt.Sprintf("- %s: %s\n", tool.Name, tool.Description))
-	}
-	toolsDesc.WriteString("\nTo use a tool, respond with: <tool>tool_name|{\"param\":\"value\"}</tool>")
+	// Convert tools into Ollama's format
+	ollamaTools := make([]client.Tool, len(tools))
 
-	// Add tools description to the last user message
-	lastMsgIdx := len(messages) - 1
-	if lastMsgIdx >= 0 && messages[lastMsgIdx].Role == "user" {
-		messages[lastMsgIdx].Content += toolsDesc.String()
+	for i, t := range tools {
+		ollamaTools[i] = client.Tool{
+			Type: "function",
+			Function: client.ToolFunction{
+				Name:        t.Name,
+				Description: t.Description,
+				Parameters:  t.JSONSchema,
+			},
+		}
 	}
 
-	// Use regular generation
-	return p.GenerateResponse(ctx, messages)
+	fmt.Printf("Available tool: \n%s\n%s\n----------\n", ollamaTools[0].Function.Parameters, ollamaTools[0].Function.Name)
+
+	// Convert messages to Ollama format
+	ollamaMessages := convertManyMessagesToOllamaMessages(messages)
+
+	// Make the chat request
+	resp, err := p.client.Chat(ctx, &client.ChatRequest{
+		Model:    p.model,
+		Messages: ollamaMessages,
+		Tools:    ollamaTools,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("chat request failed: %w", err)
+	}
+
+	// Check if the response contains tool calls
+	if len(resp.Message.ToolCalls) > 0 {
+		// Handle each tool call
+		for _, toolCall := range resp.Message.ToolCalls {
+			fmt.Printf("LLM tool call: \n%s\n%s\n----------\n", toolCall.Function.Name, toolCall.Function.Arguments)
+
+			// Find the corresponding tool
+			var toolToCall *tool.Tool
+			for _, t := range tools {
+				if t.Name == toolCall.Function.Name {
+					toolToCall = &t
+					break
+				}
+			}
+
+			if toolToCall == nil {
+				return nil, fmt.Errorf("tool %s not found", toolCall.Function.Name)
+			}
+
+			// Call the tool
+			result, err := toolToCall.Function(ctx, []byte(toolCall.Function.Arguments))
+			if err != nil {
+				return nil, fmt.Errorf("tool execution failed: %w", err)
+			}
+
+			// Add the tool response to messages
+			toolResponseMsg := client.Message{
+				Role:    "tool",
+				Content: fmt.Sprintf("%v", result),
+			}
+			ollamaMessages = append(ollamaMessages, &toolResponseMsg)
+		}
+	}
+
+	// Make another chat request with the tool response
+	resp, err = p.client.Chat(ctx, &client.ChatRequest{
+		Model:    p.model,
+		Messages: ollamaMessages,
+		Tools:    ollamaTools,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("follow-up chat request failed: %w", err)
+	}
+
+	// Return the final response
+	return &message.Message{
+		Role:    "assistant",
+		Content: resp.Message.Content,
+	}, nil
 }
 
 // GenerateStream streams the response token by token
@@ -135,36 +180,36 @@ func (p *OllamaProvider) GetModelList(ctx context.Context) ([]string, error) {
 	return nil, nil
 }
 
-func (p *OllamaProvider) apiChat(ctx context.Context, jsonBody []byte) (*ollamaResponse, error) {
-	req, err := http.NewRequestWithContext(ctx, "POST", p.host+":"+strconv.Itoa(p.port)+"/api/chat", bytes.NewBuffer(jsonBody))
-	if err != nil {
-		return nil, fmt.Errorf("error creating request: %w", err)
-	}
-	req.Header.Set("Content-Type", "application/json")
+//func (p *OllamaProvider) apiChat(ctx context.Context, jsonBody []byte) (*ollamaResponse, error) {
+//req, err := http.NewRequestWithContext(ctx, "POST", p.host+":"+strconv.Itoa(p.port)+"/api/chat", bytes.NewBuffer(jsonBody))
+//if err != nil {
+//return nil, fmt.Errorf("error creating request: %w", err)
+//}
+//req.Header.Set("Content-Type", "application/json")
 
-	resp, err := p.client.Do(req)
-	if err != nil {
-		return nil, fmt.Errorf("error making request: %w", err)
-	}
-	defer resp.Body.Close()
+//resp, err := p.client.Do(req)
+//if err != nil {
+//return nil, fmt.Errorf("error making request: %w", err)
+//}
+//defer resp.Body.Close()
 
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return nil, fmt.Errorf("error reading response: %w", err)
-	}
+//body, err := io.ReadAll(resp.Body)
+//if err != nil {
+//return nil, fmt.Errorf("error reading response: %w", err)
+//}
 
-	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("unexpected status code: %d, body: %s", resp.StatusCode, string(body))
-	}
+//if resp.StatusCode != http.StatusOK {
+//return nil, fmt.Errorf("unexpected status code: %d, body: %s", resp.StatusCode, string(body))
+//}
 
-	var ollamaResp ollamaResponse
-	if err := json.Unmarshal(body, &ollamaResp); err != nil {
-		return nil, fmt.Errorf("error unmarshaling response: %w", err)
-	}
+//var ollamaResp ollamaResponse
+//if err := json.Unmarshal(body, &ollamaResp); err != nil {
+//return nil, fmt.Errorf("error unmarshaling response: %w", err)
+//}
 
-	if ollamaResp.Error != "" {
-		return nil, fmt.Errorf("ollama error: %s", ollamaResp.Error)
-	}
+//if ollamaResp.Error != "" {
+//return nil, fmt.Errorf("ollama error: %s", ollamaResp.Error)
+//}
 
-	return &ollamaResp, nil
-}
+//return &ollamaResp, nil
+//}
