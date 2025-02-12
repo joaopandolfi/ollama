@@ -6,9 +6,22 @@ import (
 )
 
 func convertMessageToOllamaMessage(m message.Message) *client.Message {
-	if m.Role == message.UserMessageRole {
+	switch m.Role {
+	case message.UserMessageRole:
 		return &client.Message{
 			Role:    client.RoleUser,
+			Content: m.Content,
+		}
+
+	case message.AssistantMessageRole:
+		return &client.Message{
+			Role:    client.RoleAssistant,
+			Content: m.Content,
+		}
+
+	case message.ToolMessageRole:
+		return &client.Message{
+			Role:    client.RoleTool,
 			Content: m.Content,
 		}
 	}
@@ -17,9 +30,22 @@ func convertMessageToOllamaMessage(m message.Message) *client.Message {
 }
 
 func convertOllamaMessageToMessage(m client.Message) message.Message {
-	if m.Role == client.RoleUser {
+	switch m.Role {
+	case client.RoleUser:
 		return message.Message{
 			Role:    message.UserMessageRole,
+			Content: m.Content,
+		}
+
+	case client.RoleAssistant:
+		return message.Message{
+			Role:    message.AssistantMessageRole,
+			Content: m.Content,
+		}
+
+	case client.RoleTool:
+		return message.Message{
+			Role:    message.ToolMessageRole,
 			Content: m.Content,
 		}
 	}
