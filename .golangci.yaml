@@ -1,0 +1,37 @@
+linters:
+  enable:
+    - asasalint
+    - asciicheck
+    - bidichk
+    - canonicalheader
+    - errcheck
+    - gci
+    - goimports
+    - gocritic
+    - gosec
+    - govet
+    - ineffassign
+    - misspell
+    - revive
+    - perfsprint
+    - staticcheck
+    - unconvert
+    - unused
+    - testifylint
+
+linters-settings:
+  gci:
+    sections:
+      # include the default standard section, default section, and the "local"
+      # section which can be configured with
+      # 'goimports -local github.com/open-sauced/saucectl'
+      - standard
+      - default
+      - localmodule
+
+run:
+  timeout: 5m
+
+# attempts to automatically fix linting errors that are fixable by supported linters
+fix: true
+

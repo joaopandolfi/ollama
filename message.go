@@ -1,25 +1,25 @@
 package ollama
 
 import (
-	"github.com/agent-api/core/message"
-	"github.com/agent-api/ollama-provider/client"
+	"github.com/agent-api/core/types"
+	"github.com/agent-api/ollama/client"
 )
 
-func convertMessageToOllamaMessage(m message.Message) *client.Message {
+func convertMessageToOllamaMessage(m types.Message) *client.Message {
 	switch m.Role {
-	case message.UserMessageRole:
+	case types.UserMessageRole:
 		return &client.Message{
 			Role:    client.RoleUser,
 			Content: m.Content,
 		}
 
-	case message.AssistantMessageRole:
+	case types.AssistantMessageRole:
 		return &client.Message{
 			Role:    client.RoleAssistant,
 			Content: m.Content,
 		}
 
-	case message.ToolMessageRole:
+	case types.ToolMessageRole:
 		return &client.Message{
 			Role:    client.RoleTool,
 			Content: m.Content,
@@ -29,31 +29,31 @@ func convertMessageToOllamaMessage(m message.Message) *client.Message {
 	return nil
 }
 
-func convertOllamaMessageToMessage(m client.Message) message.Message {
+func convertOllamaMessageToMessage(m client.Message) types.Message {
 	switch m.Role {
 	case client.RoleUser:
-		return message.Message{
-			Role:    message.UserMessageRole,
+		return types.Message{
+			Role:    types.UserMessageRole,
 			Content: m.Content,
 		}
 
 	case client.RoleAssistant:
-		return message.Message{
-			Role:    message.AssistantMessageRole,
+		return types.Message{
+			Role:    types.AssistantMessageRole,
 			Content: m.Content,
 		}
 
 	case client.RoleTool:
-		return message.Message{
-			Role:    message.ToolMessageRole,
+		return types.Message{
+			Role:    types.ToolMessageRole,
 			Content: m.Content,
 		}
 	}
 
-	return message.Message{}
+	return types.Message{}
 }
 
-func convertManyMessagesToOllamaMessages(messages []message.Message) []*client.Message {
+func convertManyMessagesToOllamaMessages(messages []types.Message) []*client.Message {
 	// Convert agent messages to Ollama format
 	ollamaMessages := make([]*client.Message, len(messages))
 

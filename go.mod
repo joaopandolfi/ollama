@@ -1,4 +1,4 @@
-module github.com/agent-api/ollama-provider
+module github.com/agent-api/ollama
 
 go 1.23.3
 
