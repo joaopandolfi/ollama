@@ -46,7 +46,7 @@ type ChatRequest struct {
 	Options   *RequestOptions `json:"options,omitempty"`
 	Stream    *bool           `json:"stream,omitempty"`
 	KeepAlive *int            `json:"keep_alive,omitempty"`
-	Tools     []Tool          `json:"tools,omitempty"`
+	Tools     []*Tool         `json:"tools,omitempty"`
 }
 
 // ChatResponse represents a response from the chat endpoint

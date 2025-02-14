@@ -5,7 +5,7 @@ import (
 	"github.com/agent-api/ollama/client"
 )
 
-func convertMessageToOllamaMessage(m types.Message) *client.Message {
+func convertMessageToOllamaMessage(m *types.Message) *client.Message {
 	switch m.Role {
 	case types.UserMessageRole:
 		return &client.Message{
@@ -29,31 +29,31 @@ func convertMessageToOllamaMessage(m types.Message) *client.Message {
 	return nil
 }
 
-func convertOllamaMessageToMessage(m client.Message) types.Message {
+func convertOllamaMessageToMessage(m *client.Message) *types.Message {
 	switch m.Role {
 	case client.RoleUser:
-		return types.Message{
+		return &types.Message{
 			Role:    types.UserMessageRole,
 			Content: m.Content,
 		}
 
 	case client.RoleAssistant:
-		return types.Message{
+		return &types.Message{
 			Role:    types.AssistantMessageRole,
 			Content: m.Content,
 		}
 
 	case client.RoleTool:
-		return types.Message{
+		return &types.Message{
 			Role:    types.ToolMessageRole,
 			Content: m.Content,
 		}
 	}
 
-	return types.Message{}
+	return nil
 }
 
-func convertManyMessagesToOllamaMessages(messages []types.Message) []*client.Message {
+func convertManyMessagesToOllamaMessages(messages []*types.Message) []*client.Message {
 	// Convert agent messages to Ollama format
 	ollamaMessages := make([]*client.Message, len(messages))
 

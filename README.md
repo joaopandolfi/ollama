@@ -1,6 +1,6 @@
 # agent-api ollama-provider
 
-The Ollama provider for the `agent-api`
+The Ollama provider for `agent-api`
 
 ---
 
