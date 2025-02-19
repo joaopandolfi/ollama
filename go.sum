@@ -1,2 +1,4 @@
 github.com/agent-api/core v0.0.0-20250213143732-77b2a39cf1f9 h1:bxpmrZmFlrhXZrs3lKnCMa/8jLYji9QD8LhK4wNjfUU=
 github.com/agent-api/core v0.0.0-20250213143732-77b2a39cf1f9/go.mod h1:dubJb1P6cSuYOqQvBX/R9inWvHPMDuXCEwqwZfzXWTk=
+github.com/agent-api/core v0.0.0-20250214035826-39f6f4564911 h1:fN2X6Oa3+krpq4HNvZRQ1czX1ipcduWMtAh2ORECCWg=
+github.com/agent-api/core v0.0.0-20250214035826-39f6f4564911/go.mod h1:dubJb1P6cSuYOqQvBX/R9inWvHPMDuXCEwqwZfzXWTk=
