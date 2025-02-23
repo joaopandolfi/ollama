@@ -108,7 +108,7 @@ func (p *Provider) Generate(ctx context.Context, opts *types.GenerateOptions) (*
 }
 
 // GenerateStream streams the response token by token
-func (p *Provider) GenerateStream(ctx context.Context, opts *types.GenerateOptions) (<-chan *types.Message, <-chan error) {
+func (p *Provider) GenerateStream(ctx context.Context, opts *types.GenerateOptions) (<-chan *types.Message, <-chan string, <-chan error) {
 	p.logger.Info("Stream generation not implemented yet")
-	return nil, nil
+	return nil, nil, nil
 }
