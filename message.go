@@ -6,23 +6,31 @@ import (
 )
 
 func convertMessageToOllamaMessage(m *types.Message) *client.Message {
+	images := []string{}
+	for _, image := range m.Images {
+		images = append(images, image.Base64Encoding)
+	}
+
 	switch m.Role {
 	case types.UserMessageRole:
 		return &client.Message{
 			Role:    client.RoleUser,
 			Content: m.Content,
+			Images:  images,
 		}
 
 	case types.AssistantMessageRole:
 		return &client.Message{
 			Role:    client.RoleAssistant,
 			Content: m.Content,
+			Images:  images,
 		}
 
 	case types.ToolMessageRole:
 		return &client.Message{
 			Role:    client.RoleTool,
 			Content: m.Content,
+			Images:  images,
 		}
 	}
 
@@ -30,23 +38,33 @@ func convertMessageToOllamaMessage(m *types.Message) *client.Message {
 }
 
 func convertOllamaMessageToMessage(m *client.Message) *types.Message {
+	images := []*types.Image{}
+	for _, image := range m.Images {
+		images = append(images, &types.Image{
+			Base64Encoding: image,
+		})
+	}
+
 	switch m.Role {
 	case client.RoleUser:
 		return &types.Message{
 			Role:    types.UserMessageRole,
 			Content: m.Content,
+			Images:  images,
 		}
 
 	case client.RoleAssistant:
 		return &types.Message{
 			Role:    types.AssistantMessageRole,
 			Content: m.Content,
+			Images:  images,
 		}
 
 	case client.RoleTool:
 		return &types.Message{
 			Role:    types.ToolMessageRole,
 			Content: m.Content,
+			Images:  images,
 		}
 	}
 
