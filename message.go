@@ -1,32 +1,32 @@
 package ollama
 
 import (
-	"github.com/agent-api/core/types"
+	"github.com/agent-api/core"
 	"github.com/agent-api/ollama/client"
 )
 
-func convertMessageToOllamaMessage(m *types.Message) *client.Message {
+func convertMessageToOllamaMessage(m *core.Message) *client.Message {
 	images := []string{}
 	for _, image := range m.Images {
 		images = append(images, image.Base64Encoding)
 	}
 
 	switch m.Role {
-	case types.UserMessageRole:
+	case core.UserMessageRole:
 		return &client.Message{
 			Role:    client.RoleUser,
 			Content: m.Content,
 			Images:  images,
 		}
 
-	case types.AssistantMessageRole:
+	case core.AssistantMessageRole:
 		return &client.Message{
 			Role:    client.RoleAssistant,
 			Content: m.Content,
 			Images:  images,
 		}
 
-	case types.ToolMessageRole:
+	case core.ToolMessageRole:
 		return &client.Message{
 			Role:    client.RoleTool,
 			Content: m.Content,
@@ -37,32 +37,32 @@ func convertMessageToOllamaMessage(m *types.Message) *client.Message {
 	return nil
 }
 
-func convertOllamaMessageToMessage(m *client.Message) *types.Message {
-	images := []*types.Image{}
+func convertOllamaMessageToMessage(m *client.Message) *core.Message {
+	images := []*core.Image{}
 	for _, image := range m.Images {
-		images = append(images, &types.Image{
+		images = append(images, &core.Image{
 			Base64Encoding: image,
 		})
 	}
 
 	switch m.Role {
 	case client.RoleUser:
-		return &types.Message{
-			Role:    types.UserMessageRole,
+		return &core.Message{
+			Role:    core.UserMessageRole,
 			Content: m.Content,
 			Images:  images,
 		}
 
 	case client.RoleAssistant:
-		return &types.Message{
-			Role:    types.AssistantMessageRole,
+		return &core.Message{
+			Role:    core.AssistantMessageRole,
 			Content: m.Content,
 			Images:  images,
 		}
 
 	case client.RoleTool:
-		return &types.Message{
-			Role:    types.ToolMessageRole,
+		return &core.Message{
+			Role:    core.ToolMessageRole,
 			Content: m.Content,
 			Images:  images,
 		}
@@ -71,7 +71,7 @@ func convertOllamaMessageToMessage(m *client.Message) *types.Message {
 	return nil
 }
 
-func convertManyMessagesToOllamaMessages(messages []*types.Message) []*client.Message {
+func convertManyMessagesToOllamaMessages(messages []*core.Message) []*client.Message {
 	// Convert agent messages to Ollama format
 	ollamaMessages := make([]*client.Message, len(messages))
 
