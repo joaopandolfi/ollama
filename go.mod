@@ -1,4 +1,4 @@
-module github.com/agent-api/ollama
+module github.com/joaopandolfi/ollama
 
 go 1.23.3
 

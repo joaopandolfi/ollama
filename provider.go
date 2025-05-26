@@ -5,8 +5,8 @@ import (
 	"fmt"
 
 	"github.com/agent-api/core"
-	"github.com/agent-api/ollama/client"
 	"github.com/go-logr/logr"
+	"github.com/joaopandolfi/ollama/client"
 )
 
 // Provider implements the LLMProvider interface for Ollama

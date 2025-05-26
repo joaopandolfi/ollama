@@ -2,7 +2,7 @@ package ollama
 
 import (
 	"github.com/agent-api/core"
-	"github.com/agent-api/ollama/client"
+	"github.com/joaopandolfi/ollama/client"
 )
 
 func convertMessageToOllamaMessage(m *core.Message) *client.Message {
