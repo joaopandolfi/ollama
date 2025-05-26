@@ -32,6 +32,13 @@ func convertMessageToOllamaMessage(m *core.Message) *client.Message {
 			Content: m.Content,
 			Images:  images,
 		}
+
+	case core.SystemMessageRole:
+		return &client.Message{
+			Role:    client.RoleSystem,
+			Content: m.Content,
+			Images:  images,
+		}
 	}
 
 	return nil
