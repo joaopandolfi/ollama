@@ -1,6 +1,6 @@
 package models
 
-import "github.com/agent-api/core"
+import "github.com/joaopandolfi/core"
 
 // Deepseek models
 var DEEPSEEK_R1_7B *core.Model = &core.Model{

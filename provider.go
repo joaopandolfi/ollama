@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/agent-api/core"
 	"github.com/go-logr/logr"
+	"github.com/joaopandolfi/core"
 	"github.com/joaopandolfi/ollama/client"
 )
 

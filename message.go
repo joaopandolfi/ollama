@@ -1,7 +1,7 @@
 package ollama
 
 import (
-	"github.com/agent-api/core"
+	"github.com/joaopandolfi/core"
 	"github.com/joaopandolfi/ollama/client"
 )
 
